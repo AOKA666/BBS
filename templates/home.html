@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">{% block nav_title %}BBS{% endblock %}</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">博客 <span class="sr-only">(current)</span></a></li>
+        <li><a href="#">Link</a></li>
+        <li class="dropdown"><a href="/home/">首页</a></li>
+      </ul>
+      <form class="navbar-form navbar-left">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+      <ul class="nav navbar-nav navbar-right">
+          {% if request.user.is_authenticated %}
+            <li><a href="#">{{ request.user.username }}</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">更多 <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#" data-toggle="modal" data-target="#my_modal">修改密码</a></li>
+                <li><a href="/{{ request.user.username }}/backend/">后台管理</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="{% url 'logout' %}">退出登录</a></li>
+              </ul>
+            </li>
+          {% else %}
+              <li><a href="{% url 'register' %}">注册</a></li>
+              <li><a href="{% url 'login' %}">登录</a></li>
+          {% endif %}
+      </ul>
+        <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="my_modal">
+          <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="clearfix">
+                    <form class="form-horizontal" id="reset_pwd_form">
+                        <h2 class="text-center">修改密码</h2>
+                        <div class="form-group">
+                            <label for="origin_pwd" class="col-sm-2 control-label">原密码</label>
+                            <div class="col-sm-8">
+                                <input type="password" class="form-control" id="origin_pwd" name="origin_pwd">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_pwd" class="col-sm-2 control-label">新密码</label>
+                            <div class="col-sm-8">
+                                <input type="password" class="form-control" id="new_pwd" name="new_pwd">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_pwd" class="col-sm-2 control-label">确认密码</label>
+                            <div class="col-sm-8">
+                                <input type="password" class="form-control" id="confirm_pwd" name="confirm_pwd">
+                            </div>
+                        </div>
+                    </form>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-offset-2 col-sm-8">
+                                <input class="btn btn-info form-control" id="id_reset" value="提交">
+                                <span style="color: red;" id="reset_error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+        </div>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+            <div class="panel panel-warning">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div><div class="panel panel-success">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            {% for article in articles %}
+            <div class="media">
+              <div class="media-left">
+                <a href="#">
+                  <img class="media-object" src="/media/{{ article.author.avatar }}" style="width: 100px;height: 100px;">
+                </a>
+              </div>
+              <div class="media-body">
+                <h4 class="media-heading"><a href="/{{ article.author.username }}/article/{{ article.id }}/">{{ article.title }}</a></h4>
+                  {{ article.summary }}
+              </div>
+                <br>
+                <p><a href="{% url 'site' article.author %}">{{ article.author }}</a> | {{ article.create_time|date:'Y-m-d' }} | 点赞{{ article.favor_set.count }} | 评论{{ article.comment_set.count }}</p>
+            </div>
+                <hr>
+            {% endfor %}
+        </div>
+        <div class="col-md-2">
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+            <div class="panel panel-warning">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+              </div>
+              <div class="panel-body">
+                Panel content
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% endblock %}
+{% block script %}
+    <script>
+        $("#id_reset").click(function () {
+            $.ajax({
+                url: '/reset_pwd/',
+                data: $("#reset_pwd_form").serialize(),
+                type: 'post',
+                headers: {'X-CSRFToken': $.cookie('csrftoken')},
+                success: function (ret) {
+                    console.log(123);
+                    if (ret['status']===0){
+                        $("#reset_error").text(ret['message'])
+                    }else{
+                        window.location.href = '/login/';
+                    }
+                }
+            })
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "site.html" %}
+{% load tags %}
+
+
+{% block content %}
+{% left_menu username %}
+<div class="col-md-10">
+    <h1 class="text-center">{{ article.title }}</h1>
+    {{ article.content|safe }}
+    <hr>
+    <div class="clearfix">
+        <p>分类: {{ article.category }}</p>
+        <button type="button" class="btn btn-default btn-lg pull-right" aria-label="Left Align" style="margin-right: 50px;" id="id_favor">
+            <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+            <span class="favor-count">{{ article.favor_set.count }}</span>
+        </button>
+        <p class="msg pull-right"></p>
+    </div>
+    <hr>
+    <a class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        发表评论
+    </a>
+    <div class="collapse" id="collapseExample">
+        <div class="well clearfix">
+                <textarea class="form-control" rows="5" name="comment-content"></textarea><br>
+                <button class="btn btn-info pull-right" id="id_comment">提交</button>
+        </div>
+    </div>
+    <ul class="list-group comment-list">
+        {% for comment in comments %}
+            <li class="list-group-item">
+                <span>第{{ forloop.revcounter }}楼</span>
+                <span>{{ comment.user.username }}</span>
+                <span class="pull-right"><a href="#">回复</a></span>
+                <span class="pull-right">{{ comment.comment_time }}</span>
+                <div>{{ comment.content }}</div>
+            </li>
+            <hr>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block script%}
+    {{ super }}
+    <script>
+        $(function () {
+            bindClickFavorEvent();
+            bindPostCommentEvent();
+        })
+        function bindClickFavorEvent() {
+            let flag = false;
+            let timer = null;
+            if (flag) {
+                clearTimeout(timer);
+            } else {
+                flag = true;
+            }
+            $("#id_favor").click(function () {
+                let article_id = {{ article.id }};
+                $.ajax({
+                    url: "/click_favor/",
+                    type: "post",
+                    data: {"article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+                    success: function (ret) {
+                        $(".favor-count").text(ret["current_num"]);
+                        $(".msg").text(ret["msg"]);
+                        // 让文字隔一段时间自动消失
+                        timer = setTimeout(function () {
+                            $(".msg").text('');
+                        }, 2000);
+                    }
+                })
+            })
+        }
+        function bindPostCommentEvent() {
+            $("#id_comment").click(function () {
+                let content = $("[name='comment-content']").val();
+                let article_id = {{ article_id }};
+                $.ajax({
+                    url: '/comment/',
+                    type: 'post',
+                    data: {"content": content, "article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+                    success: function (ret) {
+                        let username = '{{ request.user.username }}';
+                        let floor = ret['root_comment'];
+                        let time = ret['comment_time'];
+                        let temp = `<li class="list-group-item">
+                                        <span>第${ floor }楼</span>
+                                        <span>${ username }</span>
+                                        <span class="pull-right"><a href="#">回复</a></span>
+                                        <span class="pull-right">${ time }</span>
+                                        <div>${ content }</div>
+                                    </li>`
+                        $(".comment-list").prepend(temp);
+                    }
+                })
+            })
+        }
+    </script>
+{% endblock %}

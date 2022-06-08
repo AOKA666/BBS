@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                <h2 class="text-center">用户注册</h2>
+                <form id="reg_form">
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.auto_id }}">{{ field.label }}</label>
+                            {{ field }}
+                            <span class="errors pull-right" style="color:red;"></span>
+                        </div>
+                    {% endfor %}
+                    <div class="form-group">
+                        <label for="my_avatar">请上传头像
+                            <img src="/static/img/default.png" class="my-avatar img-circle">
+                        </label>
+                        <input type="file" class="hidden" id="my_avatar" name="avatar">
+                    </div>
+                </form>
+                <button class="btn btn-info pull-right" id="id_submit">注册</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+<script>
+    $("#my_avatar").change(function () {
+        let my_file_reader = new FileReader();
+        let img_obj = $(this)[0].files[0];
+        my_file_reader.readAsDataURL(img_obj);
+        $(my_file_reader).load(function () {
+            $(".my-avatar").attr("src", this.result);
+        })
+    })
+    $("#id_submit").click(function () {
+        let formDataObj = new FormData();
+        // console.log($("#reg_form").serializeArray()); [{name: 'username', value: ''},{},{}]
+        $.each($("#reg_form").serializeArray(), function () {
+            formDataObj.append(this.name, this.value)
+        })
+        formDataObj.append('avatar',$("#my_avatar")[0].files[0])
+        $.ajax({
+            url: '',
+            type: 'post',
+            data: formDataObj,
+            contentType: false,
+            processData: false,
+            headers: {"X-CSRFToken": $.cookie("csrftoken")},
+            success: function (ret) {
+                if (ret['status']===0){
+                    $.each(ret.message, function (index, obj) {
+                        let target_id = "#id_"+index;
+                        $(target_id).next().text(obj[0]).parent().addClass("has-error");
+                    })
+                }else{
+                    window.location.href = ret.url;
+                }
+                $("input").focus(function () {
+                    $(this).parent().removeClass("has-error");
+                })
+            }
+        })
+    })
+</script>
+{% endblock %}

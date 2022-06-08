@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+    <div class="container">
+        <div class="alert alert-danger alert-dismissible hidden" role="alert">
+            <strong></strong>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                <h2 class="text-center">用户登录</h2>
+                <div class="form-group">
+                    <label for="id_username">用户名</label>
+                    <input type="text" class="form-control" name="username" id="id_username">
+                </div>
+                <div class="form-group">
+                    <label for="id_password">密码</label>
+                    <input type="password" class="form-control" name="password" id="id_password">
+                </div>
+                <div class="form-group clearfix">
+                    <div class="col-sm-5 pull-left">
+                        <div class="row">
+                            <input type="text" class="form-control col-sm-6" placeholder="请输入验证码" name="code">
+                        </div>
+                    </div>
+                    <div class="col-sm-6 pull-right">
+                        <div class="row">
+                            <img src="/get_code/" id="rand_code" class="img-rounded" style="width: 100%;height: 35px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="form-control btn-info" value="登录" id="login_submit">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+<script>
+    $("#rand_code").click(function () {
+        this.src += '?';
+    })
+    $("#login_submit").click(function () {
+        let username = $("#id_username").val();
+        let password = $("#id_password").val();
+        let code = $("[name='code']").val();
+        $.ajax({
+            url: '',
+            type: 'post',
+            data: {"username":username, "password":password, "code":code, "csrfmiddlewaretoken":"{{ csrf_token }}"},
+            success: function (ret) {
+                if(ret.status===0){
+                    $(".alert").removeClass("hidden");
+                    $(".alert strong").text(ret.message);
+                    $("#rand_code").trigger("click");
+                }else{
+                    $(".alert").addClass("hidden");
+                    window.location.href = '/home/';
+                }
+            }
+        })
+    })
+</script>
+{% endblock %}
