@@ -17,26 +17,32 @@
         <p class="msg pull-right"></p>
     </div>
     <hr>
-    <a class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+    <a id="comment-collapse" class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
         发表评论
     </a>
     <div class="collapse" id="collapseExample">
         <div class="well clearfix">
+                <span class="hidden" id="parent_id"></span>
                 <textarea class="form-control" rows="5" name="comment-content"></textarea><br>
                 <button class="btn btn-info pull-right" id="id_comment">提交</button>
         </div>
     </div>
-    <ul class="list-group comment-list">
-        {% for comment in comments %}
-            <li class="list-group-item">
-                <span>第{{ forloop.revcounter }}楼</span>
-                <span>{{ comment.user.username }}</span>
-                <span class="pull-right"><a href="#">回复</a></span>
-                <span class="pull-right">{{ comment.comment_time }}</span>
-                <div>{{ comment.content }}</div>
-            </li>
-            <hr>
-        {% endfor %}
+{#    <ul class="list-group comment-list">#}
+{#        {% for comment in comments %}#}
+{#            <li class="list-group-item" id="{{ comment.id }}">#}
+{#                <img src="/media/{{ comment.user.avatar }}" style="width:50px;height:50px;">#}
+{#                <span>第{{ forloop.revcounter }}楼</span>#}
+{#                <span>{{ comment.user.username }}</span>#}
+{#                <span class="pull-right"><a href="#" id="id_reply">回复</a></span>#}
+{#                <span class="pull-right">{{ comment.comment_time|date:'Y-m-d h:i:s' }}</span>#}
+{#                <div style="margin-left: 55px;">{{ comment.content }}</div>#}
+{#            </li>#}
+{#            <hr>#}
+{#        {% endfor %}#}
+{#    </ul>#}
+    <hr>
+    <h4>精彩评论</h4>
+    <ul class="list-group comment-list2">
     </ul>
 </div>
 {% endblock %}
@@ -46,6 +52,9 @@
         $(function () {
             bindClickFavorEvent();
             bindPostCommentEvent();
+            bindReplyEvent();
+            showComments();
+            test();
         })
         function bindClickFavorEvent() {
             let flag = false;
@@ -76,24 +85,123 @@
             $("#id_comment").click(function () {
                 let content = $("[name='comment-content']").val();
                 let article_id = {{ article_id }};
+                let parent_id = $("#parent_id").text()
                 $.ajax({
                     url: '/comment/',
                     type: 'post',
-                    data: {"content": content, "article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+                    data: {"content": content,
+                        "article_id": article_id,
+                        "csrfmiddlewaretoken": "{{ csrf_token }}",
+                        "parent_id": parent_id},
                     success: function (ret) {
                         let username = '{{ request.user.username }}';
                         let floor = ret['root_comment'];
                         let time = ret['comment_time'];
-                        let temp = `<li class="list-group-item">
-                                        <span>第${ floor }楼</span>
+                        let comment_id = ret['comment_id'];
+                        let img_src = '/media/{{ request.user.avatar }}';
+                        let style;
+                        parent_id === undefined ? style="" : style="margin-left:50px;"
+                        let which_floor;
+                        parent_id === undefined ? which_floor="第"+floor+"楼" : which_floor="";
+                        let temp = `<li class="list-group-item" id="${ comment_id }" style="${ style }">
+                                        <img src="${ img_src }" style="width:50px;height:50px;">
+                                        <span>${ which_floor }</span>
                                         <span>${ username }</span>
                                         <span class="pull-right"><a href="#">回复</a></span>
                                         <span class="pull-right">${ time }</span>
-                                        <div>${ content }</div>
-                                    </li>`
-                        $(".comment-list").prepend(temp);
+                                        <div style="margin-left: 55px;">${ content }</div>
+                                    </li><hr>`
+                        if (parent_id){
+                            $("li[id='"+parent_id+"']").append(temp)
+                        }else{
+                            $(".comment-list").prepend(temp);
+                        }
                     }
                 })
+            })
+        }
+        function bindReplyEvent(){
+            $(".comment-list2").on("click", "#id_reply", function () {
+                $("#comment-collapse").trigger("click");
+                let parent_id = $(this).parent().parent().attr("id");
+                // 将父评论ID悄悄写入隐藏标签中
+                $("#parent_id").text(parent_id);
+            })
+        }
+        function get_recursive_comment(obj, temp){
+            $.each(obj, function (index, item) {
+                // {'17': {'children': [],'content': '是啊，而你就是个彩笔','parent': 8}}
+                $.each(item, function (k, v) {
+                    // k:0
+                    // v: {'children': [],'content': '是啊，而你就是个彩笔','parent': 8}
+                    let comment_id = k;
+                    let user_avatar = v["avatar"];
+                    let username = v["username"];
+                    let comment_time = v["comment_time"];
+                    let content = v["content"];
+                    temp += '<li style="margin-left:50px" class="list-group-item" id="'+comment_id+'">'+
+                            '<img src="'+user_avatar+'" style="width:50px;height:50px;">'+
+                            '<span>'+username+'</span>'+
+                            '<span class="pull-right"><a href="#" id="id_reply">回复</a></span>'+
+                            '<span class="pull-right">'+comment_time+'</span>'+
+                            '<div style="margin-left: 55px;">'+content+'</div>'
+                    if (v["children"].length!==0){
+                        // 子评论下还有评论
+                        console.log("三层评论");
+                        temp = get_recursive_comment(v["children"], temp);
+                        temp += '</li>'
+                    }else{
+                        temp += '</li>'
+                    }
+                })
+            })
+        return temp
+        }
+        function showComments() {
+            let comments = {{ comment_tree|safe }};
+            console.log(comments);
+            if (comments.length===0){
+                return;
+            }
+            let html = '';
+            $.each(comments, function (index, obj) {
+                $.each(obj, function (k, v) {
+                    let comment_id = k;
+                    let user_avatar = v["avatar"];
+                    let username = v["username"];
+                    let comment_time = v["comment_time"];
+                    let content = v["content"];
+                    // 不管是不是多层评论，父评论都要渲染的
+                    let temp = '<li class="list-group-item" id="'+comment_id+'">'+
+                            '<img src="'+user_avatar+'" style="width:50px;height:50px;">'+
+                            '<span>第'+(Number(index)+1).toString()+'楼</span>'+
+                            '<span>'+username+'</span>'+
+                            '<span class="pull-right"><a href="#" id="id_reply">回复</a></span>'+
+                            '<span class="pull-right">'+comment_time+'</span>'+
+                            '<div style="margin-left: 55px;">'+content+'</div>'
+                    if (v['children'].length===0){
+                        // 是根评论,直接闭合标签
+                        temp += '</li><hr>'
+                    }else{
+                        // 多级评论，需要递归渲染,将children列表传入
+                        let sons_temp = '';
+                        let ret = get_recursive_comment(v["children"], sons_temp);
+                        console.log(ret);
+                        ret += '</li><hr>';
+                        temp += ret;
+                    }
+                    // console.log(temp);
+                    html += temp;
+                })
+            })
+            $(".comment-list2").html(html);
+        }
+        function test() {
+            let a = [{'14': {'children': [], 'content': '写的真的好啊', 'parent': ''}},
+                        {'13': {'children': [], 'content': '你也写得好', 'parent': ''}},];
+            $.each(a, function () {
+                let sss = 1;
+                {% test sss as result %}
             })
         }
     </script>

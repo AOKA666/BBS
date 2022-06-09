@@ -1,0 +1,9 @@
+<li class="list-group-item" id="{{ obj.id }}">
+    <img src="/media/{{ obj.user.avatar }}" style="width:50px;height:50px;">
+    <span>第{{ forloop.revcounter }}楼</span>
+    <span>{{ comment.user.username }}</span>
+    <span class="pull-right"><a href="#" id="id_reply">回复</a></span>
+    <span class="pull-right">{{ comment.comment_time|date:'Y-m-d h:i:s' }}</span>
+    <div style="margin-left: 55px;">{{ comment.content }}</div>
+</li>
+<hr>

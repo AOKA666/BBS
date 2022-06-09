@@ -138,9 +138,55 @@ def site(request, username, **kwargs):
 
 
 def article(request, username, article_id):
+    """
+
+    :param request:
+    :param username:
+    :param article_id:
+    :return:
+    构造评论树
+    {
+    comment1.id:{"children":[comment2.id:{children:[]},comment3.id:{}],"parent":3},
+    comment4.id:{...},
+    }
+    """
     article = models.Article.objects.filter(id=article_id).first()
     username = username
     comments = article.comment_set.all().order_by("-comment_time")
+    # 因为评论应该是有序的，因此需要用列表而不是字典存储所有的评论
+    comment_list = []
+    for comment in comments:
+        # 构造一个基本格式
+        # {'1': {'content': '', 'children': [], 'parent': None}}
+        comment_dict = {str(comment.id): {}}
+        comment_dict[str(comment.id)]["content"] = comment.content
+        comment_dict[str(comment.id)]["avatar"] = '/media/%s' % comment.user.avatar
+        comment_dict[str(comment.id)]["comment_time"] = comment.comment_time.strftime("%Y-%m-%d %H:%M:%S")
+        comment_dict[str(comment.id)]["username"] = comment.user.username
+        comment_dict[str(comment.id)]["children"] = []
+        comment_dict[str(comment.id)]["parent"] = comment.parent_comment_id
+        if not comment.parent_comment_id:
+            comment_dict[str(comment.id)]["parent"] = ''
+        comment_list.append(comment_dict)
+    comment_tree = []
+    for item in comment_list:
+        # item是一个字典
+        for k, v in item.items():
+            if not v['parent']:
+                # 没有父亲，这是根评论
+                comment_tree.append(item)
+            else:
+                # 子评论，需要加入父亲的children列表
+                # 由于是按照时间倒序排列，子评论一定先出现在父评论之前，因此可以直接去comment_list寻找父亲
+                # 一定是子评论全部append完成，才会扫到父评论
+                # 首先要找到父亲,列表只能遍历？
+                for i in comment_list:
+                    for key, value in i.items():
+                        if key == str(v['parent']):
+                            # 找到之后加入
+                            value["children"].append(item)
+    import pprint
+    pprint.pprint(comment_tree)
     # 为了加载css必须传入blog参数
     blog = models.Blog.objects.filter(userinfo__username=username).first()
     return render(request, 'article.html', locals())
@@ -206,16 +252,21 @@ def comment(request):
     # 获取跟评论数量
     root_comment = models.Comment.objects.filter(article_id=article_id).filter(parent_comment=None).count()
     comment_content = request.POST.get("content")
+    # 获取父评论id
+    parent_id = request.POST.get("parent_id")
+    print(parent_id)
     user_id = request.user.id
     comment = models.Comment.objects.create(
         user_id=user_id,
         article_id=article_id,
         content=comment_content,
+        parent_comment_id=parent_id,
     )
+    # 返回评论时间与楼层数，用于前段渲染
     comment_time = comment.comment_time.strftime("%Y-%m-%d %H:%M:%S")
-    print(comment_time)
-    ret['root_comment'] = root_comment+1
+    ret['root_comment'] = root_comment+1 if not parent_id else root_comment
     # 获取评论时间
     ret['comment_time'] = comment_time
-    print(ret)
+    # 该条评论的id
+    ret['comment_id'] = comment.id
     return JsonResponse(ret)
