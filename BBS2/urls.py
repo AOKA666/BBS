@@ -51,5 +51,7 @@ urlpatterns = [
     url(r'^(?P<username>\w+)/add_article/', views.add_article),
     # 上传图片
     url(r'^upload_img/', views.upload_img),
+    # 修改头像
+    url(r'^(?P<username>\w+)/change_avatar/$', views.change_avatar),
 
 ]

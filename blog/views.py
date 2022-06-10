@@ -186,7 +186,7 @@ def article(request, username, article_id):
                             # 找到之后加入
                             value["children"].append(item)
     import pprint
-    pprint.pprint(comment_tree)
+    # pprint.pprint(comment_tree)
     # 为了加载css必须传入blog参数
     blog = models.Blog.objects.filter(userinfo__username=username).first()
     return render(request, 'article.html', locals())
@@ -206,12 +206,19 @@ def add_article(request, username):
     if request.method=='POST':
         title=request.POST.get("title")
         content=request.POST.get("content")
-        summary=request.POST.get("content")[:100]
+        # 使用bs4模块找出前50个字符（不包含标签）
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(content, "html.parser")
+        tags = soup.find_all()
+        for tag in tags:
+            if tag.name == 'script':
+                tag.decompose()
+        summary=soup.text[:100]
         category_id = request.POST.get("category")
         tags = request.POST.getlist("tag")
         article = models.Article.objects.create(
             title=title,
-            content=content,
+            content=str(soup),
             summary=summary,
             author=models.UserInfo.objects.filter(username=username).first(),
             category_id=category_id)
@@ -237,10 +244,12 @@ def click_favor(request):
             models.Favor.objects.create(article_id=article_id, user_id=request.user.id)
             ret['msg'] = '点赞成功'
             ret['current_num'] += 1
+            ret['status'] = 1
         else:
             models.Favor.objects.filter(article_id=article_id, user_id=request.user.id).delete()
             ret['msg'] = '您已取消点赞'
             ret['current_num'] -= 1
+            ret['status'] = 0
         return JsonResponse(ret)
     return HttpResponse('ok')
 
@@ -270,3 +279,8 @@ def comment(request):
     # 该条评论的id
     ret['comment_id'] = comment.id
     return JsonResponse(ret)
+
+
+@login_required
+def change_avatar(request, username):
+    return render(request, "change_avatar.html")

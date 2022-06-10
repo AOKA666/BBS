@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tags %}
 
 
 {% block body %}
@@ -34,8 +35,8 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">更多 <span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#" data-toggle="modal" data-target="#my_modal">修改密码</a></li>
+                <li><a href="/{{ request.user.username }}/change_avatar/">修改头像</a></li>
+                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#my_modal">修改密码</a></li>
                 <li><a href="/{{ request.user.username }}/backend/">后台管理</a></li>
                 <li role="separator" class="divider"></li>
                 <li><a href="{% url 'logout' %}">退出登录</a></li>
@@ -136,7 +137,21 @@
                   {{ article.summary }}
               </div>
                 <br>
-                <p><a href="{% url 'site' article.author %}">{{ article.author }}</a> | {{ article.create_time|date:'Y-m-d' }} | 点赞{{ article.favor_set.count }} | 评论{{ article.comment_set.count }}</p>
+                <p><a href="{% url 'site' article.author %}">{{ article.author }}</a> |
+                  {{ article.create_time|date:'Y-m-d' }} |
+                  点赞
+                  <span class="hidden">{{ article.id }}</span>
+                  {% is_favor article.id request.user.id as is_favor%}
+                  {% if is_favor %}
+                    <span class="glyphicon glyphicon-heart" aria-hidden="true" name="home-like" style="cursor: pointer;"></span>
+                  {% else %}
+                    <span class="glyphicon glyphicon-heart-empty" aria-hidden="true" name="home-like" style="cursor: pointer;"></span>
+                  {% endif %}
+                  <span class="like-num">{{ article.favor_set.count }}</span> |
+                  评论
+                  <span class="glyphicon glyphicon-comment"></span>
+                  {{ article.comment_set.count }}
+                </p>
             </div>
                 <hr>
             {% endfor %}
@@ -189,5 +204,23 @@
                 }
             })
         })
+        // 首页点赞效果
+        $("[name='home-like']").click(function () {
+          let article_id = $(this).prev().text();
+          let self = $(this);
+          $.ajax({
+              url: "/click_favor/",
+              type: "post",
+              data: {"article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+              success: function (ret) {                     
+                  if(ret["status"]===1){
+                      self.attr("class", "glyphicon glyphicon-heart");
+                  }else{
+                      self.attr("class", "glyphicon glyphicon-heart-empty");
+                  }
+                  $(".like-num").text(ret["current_num"]);
+              }
+          })
+      })
     </script>
 {% endblock %}

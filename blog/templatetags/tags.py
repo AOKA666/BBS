@@ -31,3 +31,9 @@ def get_comment_obj(nid):
 def test(x):
     print(x)
     return x
+
+
+# 是否点过赞
+@register.simple_tag
+def is_favor(article_id, user_id):
+    return models.Favor.objects.filter(article_id=article_id, user_id=user_id).exists()

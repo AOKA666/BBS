@@ -11,7 +11,12 @@
     <div class="clearfix">
         <p>分类: {{ article.category }}</p>
         <button type="button" class="btn btn-default btn-lg pull-right" aria-label="Left Align" style="margin-right: 50px;" id="id_favor">
-            <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+            {% is_favor article.id request.user.id as is_favor %}
+            {% if is_favor %}
+                <span class="glyphicon glyphicon-heart" aria-hidden="true" id="heart_icon"></span>
+            {% else %}
+            <span class="glyphicon glyphicon-heart-empty" aria-hidden="true" id="heart_icon"></span>
+            {% endif %}
             <span class="favor-count">{{ article.favor_set.count }}</span>
         </button>
         <p class="msg pull-right"></p>
@@ -70,9 +75,14 @@
                     url: "/click_favor/",
                     type: "post",
                     data: {"article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
-                    success: function (ret) {
+                    success: function (ret) {                       
                         $(".favor-count").text(ret["current_num"]);
                         $(".msg").text(ret["msg"]);
+                        if(ret["status"]===1){
+                            $("#heart_icon").attr("class", "glyphicon glyphicon-heart");
+                        }else{
+                            $("#heart_icon").attr("class", "glyphicon glyphicon-heart-empty");
+                        }
                         // 让文字隔一段时间自动消失
                         timer = setTimeout(function () {
                             $(".msg").text('');
@@ -99,22 +109,22 @@
                         let time = ret['comment_time'];
                         let comment_id = ret['comment_id'];
                         let img_src = '/media/{{ request.user.avatar }}';
-                        let style;
-                        parent_id === undefined ? style="" : style="margin-left:50px;"
                         let which_floor;
                         parent_id === undefined ? which_floor="第"+floor+"楼" : which_floor="";
-                        let temp = `<li class="list-group-item" id="${ comment_id }" style="${ style }">
+                        let temp = `<li class="list-group-item" id="${ comment_id }">
                                         <img src="${ img_src }" style="width:50px;height:50px;">
                                         <span>${ which_floor }</span>
                                         <span>${ username }</span>
                                         <span class="pull-right"><a href="#">回复</a></span>
                                         <span class="pull-right">${ time }</span>
                                         <div style="margin-left: 55px;">${ content }</div>
-                                    </li><hr>`
+                                    </li>`
                         if (parent_id){
+                            let html = '<ul>'+temp+'</ul'>
                             $("li[id='"+parent_id+"']").append(temp)
                         }else{
-                            $(".comment-list").prepend(temp);
+                            temp += '<hr>';
+                            $(".comment-list2").prepend(temp);
                         }
                     }
                 })
@@ -139,19 +149,19 @@
                     let username = v["username"];
                     let comment_time = v["comment_time"];
                     let content = v["content"];
-                    temp += '<li style="margin-left:50px" class="list-group-item" id="'+comment_id+'">'+
+                    temp += '<ul><li class="list-group-item" id="'+comment_id+'">'+
                             '<img src="'+user_avatar+'" style="width:50px;height:50px;">'+
                             '<span>'+username+'</span>'+
-                            '<span class="pull-right"><a href="#" id="id_reply">回复</a></span>'+
+                            '<span class="pull-right"><a href="javascript:void(0);" id="id_reply">回复</a></span>'+
                             '<span class="pull-right">'+comment_time+'</span>'+
                             '<div style="margin-left: 55px;">'+content+'</div>'
                     if (v["children"].length!==0){
                         // 子评论下还有评论
                         console.log("三层评论");
                         temp = get_recursive_comment(v["children"], temp);
-                        temp += '</li>'
+                        temp += '</li></ul>'
                     }else{
-                        temp += '</li>'
+                        temp += '</li></ul>'
                     }
                 })
             })
@@ -176,7 +186,7 @@
                             '<img src="'+user_avatar+'" style="width:50px;height:50px;">'+
                             '<span>第'+(Number(index)+1).toString()+'楼</span>'+
                             '<span>'+username+'</span>'+
-                            '<span class="pull-right"><a href="#" id="id_reply">回复</a></span>'+
+                            '<span class="pull-right"><a href="javascript:void(0);" id="id_reply">回复</a></span>'+
                             '<span class="pull-right">'+comment_time+'</span>'+
                             '<div style="margin-left: 55px;">'+content+'</div>'
                     if (v['children'].length===0){
@@ -187,8 +197,9 @@
                         let sons_temp = '';
                         let ret = get_recursive_comment(v["children"], sons_temp);
                         console.log(ret);
-                        ret += '</li><hr>';
-                        temp += ret;
+                        console.log(temp);
+                        temp += ret+'</li>';
+                        console.log(temp);
                     }
                     // console.log(temp);
                     html += temp;
