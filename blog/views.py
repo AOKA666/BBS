@@ -10,6 +10,8 @@ import string
 from io import BytesIO
 from django.contrib import auth
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from BBS2 import settings
 
 
 def register(request):
@@ -89,7 +91,18 @@ def get_code(request):
 
 def home(request):
     article_list = models.Article.objects.all().order_by("-create_time")
-    return render(request, "home.html", {"articles": article_list})
+    paginator = Paginator(article_list, settings.NUM_PER_PAGE)
+    page = request.GET.get("page",1)
+    try:
+        query_sets = paginator.page(page)
+    except PageNotAnInteger:
+        query_sets = paginator.page(1)
+    except EmptyPage:
+        query_sets = paginator.page(paginator.num_pages)
+        page = paginator.num_pages
+    current_page = query_sets.number
+    page_list = paginator.get_elided_page_range(page)
+    return render(request, "home.html", locals())
 
 
 @login_required

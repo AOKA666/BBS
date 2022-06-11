@@ -35,6 +35,7 @@ class Article(models.Model):
     summary = models.CharField(verbose_name="摘要", max_length=128)
     content = models.TextField(verbose_name="文章内容")
     create_time = models.DateField(verbose_name="创建时间", auto_now_add=True)
+    # 创建时间本该使用DateTimeField，DateField使得排序不够合适
     author = models.ForeignKey("UserInfo", related_name="articles", on_delete=models.CASCADE)
     tags = models.ManyToManyField("Tag")
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
