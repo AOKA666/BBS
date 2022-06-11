@@ -30,13 +30,17 @@
                 </div>
                 <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                   <div class="panel-body">
-                      <a href="/{{ username }}/add_article">写文章</a>
+                    <a href="/{{ request.user.username }}/article_list">我的文章</a>
+                  </div>  
+                  <div class="panel-body">
+                      <a href="/{{ request.user.username }}/add_article">写文章</a>
                   </div>
                 </div>
               </div>
             </div>
         </div>
         {% block add_article %}{% endblock %}
+        {% block my_article_list %}{% endblock %}
     </div>
 </div>
 {% endblock %}

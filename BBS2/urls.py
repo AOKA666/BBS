@@ -46,9 +46,14 @@ urlpatterns = [
     # 文章详情页
     url(r'^(?P<username>\w+)/article/(?P<article_id>\d+)/', views.article),
     # 后台管理
-    url(r'^(?P<username>\w+)/backend/', views.backend),
+    url(r'^\w+/backend/', views.backend),
+    # 我的文章
+    url(r'^\w+/article_list/', views.article_list),
     # 添加文章
     url(r'^(?P<username>\w+)/add_article/', views.add_article),
+    # 删除文章
+    url(r'^delete_article/', views.delete_article),
+
     # 上传图片
     url(r'^upload_img/', views.upload_img),
     # 修改头像

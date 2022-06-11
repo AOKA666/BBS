@@ -7,28 +7,28 @@
 
 {% block nav_title %}{{ blog.site_title }}{% endblock %}
 {% block content %}
-        <div class="container-fluid">
-        <div class="row">
-            {% left_menu username %}
-            <div class="col-md-10">
-                <h1 class="text-center">{{ blog.site_name }}</h1>
-                {% for article in article_list %}
-                <div class="media">
-                  <div class="media-left">
-                    <a href="#">
-                      <img class="media-object" src="/media/{{ article.author.avatar }}" style="width: 100px;height: 100px;">
-                    </a>
-                  </div>
-                  <div class="media-body">
-                    <h4 class="media-heading"><a href='/{{ username }}/article/{{ article.id }}'>{{ article.title }}</a></h4>
-                      {{ article.summary }}
-                  </div>
-                    <br>
-                    <p class="pull-right">{{ article.create_time }} | 点赞{{ article.favor_set.count }} | 评论{{ article.comment_set.count }}</p>
-                </div>
-                    <hr>
-                {% endfor %}
+  <div class="container-fluid">
+    <div class="row">
+        {% left_menu username %}
+        <div class="col-md-10">
+            <h1 class="text-center">{{ blog.site_name }}</h1>
+            {% for article in article_list %}
+            <div class="media">
+              <div class="media-left">
+                <a href="#">
+                  <img class="media-object" src="/media/{{ article.author.avatar }}" style="width: 100px;height: 100px;">
+                </a>
+              </div>
+              <div class="media-body">
+                <h4 class="media-heading"><a href='/{{ username }}/article/{{ article.id }}'>{{ article.title }}</a></h4>
+                  {{ article.summary }}
+              </div>
+                <br>
+                <p class="pull-right">{{ article.create_time }} | 点赞{{ article.favor_set.count }} | 评论{{ article.comment_set.count }}</p>
             </div>
+                <hr>
+            {% endfor %}
         </div>
     </div>
+  </div>
 {% endblock %}
