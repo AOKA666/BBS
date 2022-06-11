@@ -1,0 +1,43 @@
+{% extends "home.html" %}
+
+
+{% block title %}修改头像{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h1>修改头像</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                <form method="post" enctype="multipart/form-data">
+                     {% csrf_token %}
+                    <h3>原头像</h3>
+                    <img src="/media/{{ request.user.avatar }}" style="width: 200px;height: 200px">
+                    <hr>
+                    <h3>新头像</h3>
+                    <input type="file" placeholder="请选择新头像" id="change_avatar" name="new-avatar">
+                    <br>
+                    <img src="/media/avatar/default.png" style="width: 200px;height: 200px;" class="new-avatar">
+                    <hr>
+                    <input type="submit" class="btn btn-default" value="提交">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    {{ super }}
+    <script>
+    $("#change_avatar").change(function () {
+        let my_file_reader = new FileReader();
+        let img_obj = $(this)[0].files[0];
+        my_file_reader.readAsDataURL(img_obj);
+        $(my_file_reader).load(function () {
+            $(".new-avatar").attr("src", this.result);
+        })
+    })
+    </script>
+{% endblock %}

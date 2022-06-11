@@ -283,4 +283,16 @@ def comment(request):
 
 @login_required
 def change_avatar(request, username):
+    if request.method == 'POST':
+        img = request.FILES.get('new-avatar')
+        # 更新方式一
+        # models.UserInfo.objects.filter().update(avatar=img)
+        # 上面的方式不会自动为头像增加'avatar/'前缀
+
+        # 更新方式二
+        # user = models.UserInfo.objects.filter(username=username).first()
+        user = request.user
+        user.avatar = img
+        user.save()
+        return redirect('/home')
     return render(request, "change_avatar.html")
