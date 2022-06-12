@@ -1,0 +1,53 @@
+{% extends "backend.html" %}
+
+
+{% block my_article_list %}
+<div class="col-md-9">
+    <h2 class="text-center">我的文章</h2>
+    <hr>
+    <table class="table table-hover table-striped table-responsive">
+        <thead>
+            <tr>
+                <th class="hidden">ID</th>
+                <th>文章标题</th>
+                <th>所属分类</th>
+                <th>创建时间</th>
+                <th>获赞数</th>
+                <th>评论数</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in request.user.articles.all %}
+            <tr>
+                <td class="hidden">{{ article.id }}</td>
+                <td>{{ article.title }}</td>
+                <td>{{ article.category.name }}</td>
+                <td>{{ article.create_time|date:'Y年m月d日' }}</td>
+                <td>{{ article.favor_set.count }}</td>
+                <td>{{ article.comment_set.count }}</td>
+                <td><a href="">查看</a> |<a href="">编辑</a> | <a href="javascript:void(0);" class="delete_article">删除</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block script%}
+    {{ super }}
+    <script>
+        $(".delete_article").click(function(){
+            if(confirm("确定要删除此文章吗?")){
+                let article_id = $(this).parent().parent().children(":first").text();
+                $.ajax({
+                    url: "/delete_article/",
+                    data: {"article_id": article_id, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+                    type: "post",
+                    success: function(){
+                        location.reload();
+                    }
+                })
+            }
+        })
+    </script>
+{% endblock %}

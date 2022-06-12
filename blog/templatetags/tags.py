@@ -37,3 +37,9 @@ def test(x):
 @register.simple_tag
 def is_favor(article_id, user_id):
     return models.Favor.objects.filter(article_id=article_id, user_id=user_id).exists()
+
+
+# 分页中判断是否是当前页
+@register.simple_tag
+def is_current_page(current_page, page):
+    return current_page == page

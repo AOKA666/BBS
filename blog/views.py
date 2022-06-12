@@ -10,6 +10,8 @@ import string
 from io import BytesIO
 from django.contrib import auth
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from BBS2 import settings
 
 
 def register(request):
@@ -87,11 +89,27 @@ def get_code(request):
     return HttpResponse(io_obj.getvalue())
 
 
+# 主页展示
 def home(request):
     article_list = models.Article.objects.all().order_by("-create_time")
-    return render(request, "home.html", {"articles": article_list})
+    paginator = Paginator(article_list, settings.NUM_PER_PAGE)
+    page = request.GET.get("page",1)
+    try:
+        # Paginator.page生成Page对象
+        query_sets = paginator.page(page)
+    except PageNotAnInteger:
+        query_sets = paginator.page(1)
+    except EmptyPage:
+        query_sets = paginator.page(paginator.num_pages)
+        page = paginator.num_pages
+    # 获取当前页数
+    current_page = query_sets.number
+    # 生成页码展示列表
+    page_list = paginator.get_elided_page_range(page)
+    return render(request, "home.html", locals())
 
 
+# 登出
 @login_required
 def logout(request):
     auth.logout(request)
@@ -193,8 +211,7 @@ def article(request, username, article_id):
 
 
 @login_required
-def backend(request, username):
-    username = username
+def backend(request):
     return render(request, "backend.html", locals())
 
 
@@ -296,3 +313,20 @@ def change_avatar(request, username):
         user.save()
         return redirect('/home')
     return render(request, "change_avatar.html")
+
+
+# 我的文章
+@login_required
+def article_list(request):
+    return render(request, "my_article_list.html")
+
+
+# 删除文章
+@login_required
+def delete_article(request):
+    print('hahaah ')
+    if request.method == 'POST':
+        article_id = request.POST.get("article_id")
+        print(article_id)
+        models.Article.objects.get(id=article_id).delete()
+        return HttpResponse("OK")
