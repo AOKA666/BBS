@@ -1,0 +1,33 @@
+{% extends 'add_article.html' %}
+{% load tags %}
+
+{% block article_details %}
+    <div class="form-group">
+        <label>标题</label>
+        <input type="text" class="form-control" name="title" value={{ article_info.title }}>
+    </div>
+    <div class="form-group">
+        <label>内容</label>
+        <textarea id="editor_id" name="content">
+            {{ article_info.content|safe }}
+        </textarea>
+    </div><div class="form-group">
+        <label>请选择标签</label>
+        {% for tag in tag_list %}
+            {% if tag in article_info.tags.all %}
+                <input type="checkbox" name="tag" value="{{ tag.id }}" checked="checked">{{ tag.name }}
+            {% else %}
+            <input type="checkbox" name="tag" value="{{ tag.id }}">{{ tag.name }}
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="form-group">
+    <label>请选择分类</label>
+    {% for cat in category_list %}
+        {% if cat.id == article_info.category_id %}
+            <input type="radio" name="category" value="{{ cat.id }}" checked="checked">{{ cat.name }}
+        {% else %}
+        <input type="radio" name="category" value="{{ cat.id }}">{{ cat.name }}
+        {% endif %}
+    {% endfor %}
+{% endblock %}

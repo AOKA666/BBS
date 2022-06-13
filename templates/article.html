@@ -22,13 +22,20 @@
         <p class="msg pull-right"></p>
     </div>
     <hr>
+    {% if request.user.is_authenticated %}
     <a id="comment-collapse" class="btn btn-primary" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
         发表评论
     </a>
+    {% else %}
+    <button class="btn btn-primary disabled">发表评论</button>
+    <span style="color:red;">请先<a href="{% url 'login' %}">登录</a>或<a href="{% url 'register' %}">注册</a></span>
+    {% endif %}
     <div class="collapse" id="collapseExample">
         <div class="well clearfix">
                 <span class="hidden" id="parent_id"></span>
-                <textarea class="form-control" rows="5" name="comment-content"></textarea><br>
+                <span id="parent_name"></span>
+                <textarea class="form-control" rows="5" name="comment-content">                   
+                </textarea><br>
                 <button class="btn btn-info pull-right" id="id_comment">提交</button>
         </div>
     </div>
@@ -95,7 +102,7 @@
             $("#id_comment").click(function () {
                 let content = $("[name='comment-content']").val();
                 let article_id = {{ article_id }};
-                let parent_id = $("#parent_id").text()
+                let parent_id = $("#parent_id").text();
                 $.ajax({
                     url: '/comment/',
                     type: 'post',
@@ -131,11 +138,14 @@
             })
         }
         function bindReplyEvent(){
-            $(".comment-list2").on("click", "#id_reply", function () {
-                $("#comment-collapse").trigger("click");
+            $(".comment-list2").on("click", "#id_reply", function () {               
                 let parent_id = $(this).parent().parent().attr("id");
+                let parent_name = $(this).parent().prev().text();
+                $("#comment-collapse").trigger("click");
+                $("[name='comment-content']").focus();
                 // 将父评论ID悄悄写入隐藏标签中
                 $("#parent_id").text(parent_id);
+                $("#parent_name").text("@"+parent_name);
             })
         }
         function get_recursive_comment(obj, temp){
@@ -171,9 +181,11 @@
             let comments = {{ comment_tree|safe }};
             console.log(comments);
             if (comments.length===0){
+                // 没有评论
                 return;
             }
             let html = '';
+            let floors = comments.length;
             $.each(comments, function (index, obj) {
                 $.each(obj, function (k, v) {
                     let comment_id = k;
@@ -184,7 +196,7 @@
                     // 不管是不是多层评论，父评论都要渲染的
                     let temp = '<li class="list-group-item" id="'+comment_id+'">'+
                             '<img src="'+user_avatar+'" style="width:50px;height:50px;">'+
-                            '<span>第'+(Number(index)+1).toString()+'楼</span>'+
+                            '<span>第'+(floors-index)+'楼</span>'+
                             '<span>'+username+'</span>'+
                             '<span class="pull-right"><a href="javascript:void(0);" id="id_reply">回复</a></span>'+
                             '<span class="pull-right">'+comment_time+'</span>'+

@@ -255,7 +255,7 @@ def upload_img(request):
     try:
         file_dir = os.path.join(settings.BASE_DIR, "media", "upload")
         if not os.path.exists(file_dir):
-            os.mkdir(upload_path)
+            os.mkdir(file_dir)
         file_path = os.path.join(file_dir, file.name)
         with open(file_path, "wb") as f:
             for line in file:
@@ -344,9 +344,22 @@ def article_list(request):
 # 删除文章
 @login_required
 def delete_article(request):
-    print('hahaah ')
     if request.method == 'POST':
         article_id = request.POST.get("article_id")
         print(article_id)
         models.Article.objects.get(id=article_id).delete()
         return HttpResponse("OK")
+
+
+@login_required
+def edit_article(request, username, article_id):
+    if request.method == 'GET':
+        article_info = models.Article.objects.get(id=article_id)
+        tag_list = models.Tag.objects.filter(article__author__username=username).distinct()
+        
+        category_list = models.Category.objects.filter(article__author__username=username).distinct()
+        for cat in category_list:
+            if cat.id == article_info.category_id:
+                print("target tag:", cat)
+            print(cat)
+        return render(request, "edit_article.html", locals())
