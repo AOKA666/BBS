@@ -324,7 +324,6 @@ def article_list(request):
 # 删除文章
 @login_required
 def delete_article(request):
-    print('hahaah ')
     if request.method == 'POST':
         article_id = request.POST.get("article_id")
         print(article_id)

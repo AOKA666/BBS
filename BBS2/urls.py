@@ -31,15 +31,17 @@ urlpatterns = [
     path('get_code/', views.get_code),
     # 重置密码
     path('reset_pwd/', views.reset_pwd),
-
     # 点赞
     url(r'^click_favor/', views.click_favor),
     # 评论
     url(r'^comment/', views.comment),
     # 自定义暴露media
     url(r'^media/(?P<path>.*)', serve, {'document_root': settings.MEDIA_ROOT}),
+    # 删除文章
+    url(r'^delete_article/', views.delete_article),
     # 个人站点
     url(r'^(?P<username>\w+)/$', views.site, name='site'),
+
     # 共用一个函数
     url(r'^(?P<username>\w+)/(?P<condition>tag|category|archive)/(?P<param>.*)/', views.site),
 
@@ -51,9 +53,6 @@ urlpatterns = [
     url(r'^\w+/article_list/', views.article_list),
     # 添加文章
     url(r'^(?P<username>\w+)/add_article/', views.add_article),
-    # 删除文章
-    url(r'^delete_article/', views.delete_article),
-
     # 上传图片
     url(r'^upload_img/', views.upload_img),
     # 修改头像
