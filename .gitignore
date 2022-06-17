@@ -2,7 +2,9 @@
 .vscode/
 BBS2/__pycache__/
 blog/__pycache__/
-blog/templatetags/__pycache__/
+*.pyc
 blog/migrations/
 !blog/migrations/__init__.py
+BBS2/local_settings.py
+blog/templatetags/__pycache__/
 .idea/

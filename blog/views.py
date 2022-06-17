@@ -12,6 +12,7 @@ from django.contrib import auth
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from BBS2 import settings
+import os
 
 
 def register(request):
@@ -210,6 +211,7 @@ def article(request, username, article_id):
     return render(request, 'article.html', locals())
 
 
+# 后台管理界面
 @login_required
 def backend(request):
     return render(request, "backend.html", locals())
@@ -244,10 +246,28 @@ def add_article(request, username):
     return render(request, "add_article.html", locals())
 
 
+# 写文章上传图片
 @xframe_options_exempt
 def upload_img(request):
     print('hahaah')
-    return HttpResponse('ok')
+    ret = {}
+    file = request.FILES.get("imgFile")
+    try:
+        file_dir = os.path.join(settings.BASE_DIR, "media", "upload")
+        if not os.path.exists(file_dir):
+            os.mkdir(file_dir)
+        file_path = os.path.join(file_dir, file.name)
+        with open(file_path, "wb") as f:
+            for line in file:
+                f.write(line)
+        ret["error"] = 0
+        ret["url"] = '/media/upload/%s' % file.name
+        return JsonResponse(ret)
+    except Exception as e:
+        print(e)
+        ret["error"] = 1
+        ret["message"] = "文件上传错误" 
+        return JsonResponse(ret)
 
 
 @login_required
@@ -329,3 +349,17 @@ def delete_article(request):
         print(article_id)
         models.Article.objects.get(id=article_id).delete()
         return HttpResponse("OK")
+
+
+@login_required
+def edit_article(request, username, article_id):
+    if request.method == 'GET':
+        article_info = models.Article.objects.get(id=article_id)
+        tag_list = models.Tag.objects.filter(article__author__username=username).distinct()
+        
+        category_list = models.Category.objects.filter(article__author__username=username).distinct()
+        for cat in category_list:
+            if cat.id == article_info.category_id:
+                print("target tag:", cat)
+            print(cat)
+        return render(request, "edit_article.html", locals())

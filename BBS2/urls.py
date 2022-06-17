@@ -37,9 +37,12 @@ urlpatterns = [
     url(r'^comment/', views.comment),
     # 自定义暴露media
     url(r'^media/(?P<path>.*)', serve, {'document_root': settings.MEDIA_ROOT}),
+    # 上传图片
+    url(r'^upload_img/', views.upload_img),
     # 删除文章
     url(r'^delete_article/', views.delete_article),
     # 个人站点
+    # 注意这个路由会覆盖很多路由
     url(r'^(?P<username>\w+)/$', views.site, name='site'),
 
     # 共用一个函数
@@ -53,8 +56,9 @@ urlpatterns = [
     url(r'^\w+/article_list/', views.article_list),
     # 添加文章
     url(r'^(?P<username>\w+)/add_article/', views.add_article),
-    # 上传图片
-    url(r'^upload_img/', views.upload_img),
+    # 编辑文章
+    url(r'^(?P<username>\w+)/edit_article/(?P<article_id>\d+)', views.edit_article),
+
     # 修改头像
     url(r'^(?P<username>\w+)/change_avatar/$', views.change_avatar),
 

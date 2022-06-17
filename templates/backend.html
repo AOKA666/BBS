@@ -1,46 +1,6 @@
-{% extends "home.html" %}
+{% extends "backend_base.html" %}
 
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-              <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="headingOne">
-                  <h4 class="panel-title">
-                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                      <h4><strong>首页</strong></h4>
-                    </a>
-                  </h4>
-                </div>
-                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                  <div class="panel-body">
-                      个人信息
-                  </div>
-                </div>
-              </div>
-              <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="headingTwo">
-                  <h4 class="panel-title">
-                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                      <h4><strong>文章</strong></h4>
-                    </a>
-                  </h4>
-                </div>
-                <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                  <div class="panel-body">
-                    <a href="/{{ request.user.username }}/article_list">我的文章</a>
-                  </div>  
-                  <div class="panel-body">
-                      <a href="/{{ request.user.username }}/add_article">写文章</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-        {% block add_article %}{% endblock %}
-        {% block my_article_list %}{% endblock %}
-    </div>
-</div>
+{% block personal_detail %}
+<h1>后台首页</h1>
 {% endblock %}
